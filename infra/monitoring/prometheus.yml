@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:80']   # If you expose metrics; else remove
+
+  - job_name: 'php_api'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['php_api:9100']  # expose from API if you add metrics endpoint
+
+  - job_name: 'db'
+    static_configs:
+      - targets: ['db:5432']  # needs exporter; replace with postgres-exporter service
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']  # needs redis exporter
