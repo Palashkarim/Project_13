@@ -1,0 +1,158 @@
+version: "3.9"
+
+services:
+  # ------------------- REVERSE PROXY -------------------
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: iot_nginx
+    depends_on:
+      - php_api
+      - web_dashboard
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/conf.d/:/etc/nginx/conf.d/:ro
+      - ./infra/nginx/certs/:/etc/nginx/certs/:ro
+      - ./web_dashboard/public:/var/www/web:ro
+      - ./server_core/public:/var/www/api:ro
+      - ./storage:/var/iot/storage
+    environment:
+      - APP_URL=${APP_URL}
+    restart: unless-stopped
+
+  # ------------------- PHP API (FPM) -------------------
+  php_api:
+    build:
+      context: ./server_core
+      dockerfile: Dockerfile   # provide later
+    container_name: iot_php_api
+    environment:
+      - APP_ENV=${APP_ENV}
+      - APP_DEBUG=${APP_DEBUG}
+      - APP_URL=${APP_URL}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_DB=${REDIS_DB}
+      - MQTT_HOST=${MQTT_HOST}
+      - MQTT_PORT=${MQTT_PORT}
+      - MQTT_TLS_ENABLED=${MQTT_TLS_ENABLED}
+      - MQTT_USER=${MQTT_USER}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - STORAGE_PATH=${STORAGE_PATH}
+      - FIRMWARE_BUILDS_DIR=${FIRMWARE_BUILDS_DIR}
+      - EXPORT_JOBS_DIR=${EXPORT_JOBS_DIR}
+      - AI_ENGINE_URL=${AI_ENGINE_URL}
+    volumes:
+      - ./server_core:/var/www/api
+      - ./storage:/var/iot/storage
+    restart: unless-stopped
+
+  # ------------------- WEB DASHBOARD (PHP-Apache) -------------------
+  web_dashboard:
+    image: php:8.3-apache
+    container_name: iot_web_dashboard
+    depends_on:
+      - php_api
+    volumes:
+      - ./web_dashboard/public:/var/www/html
+    environment:
+      - APP_URL=${APP_URL}
+    restart: unless-stopped
+
+  # ------------------- MQTT -------------------
+  mqtt:
+    image: eclipse-mosquitto:2.0
+    container_name: iot_mqtt
+    ports:
+      - "1883:1883"   # disable on public internet or put behind VPN/Firewall
+      # - "8883:8883" # enable if TLS configured in mosquitto.conf
+    volumes:
+      - ./mqtt_servers/mqtt_01/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mqtt_servers/mqtt_01/acl.conf:/mosquitto/config/acl.conf:ro
+      - ./mqtt_servers/mqtt_01/passwd:/mosquitto/config/passwd
+      - ./mqtt_servers/mqtt_01/logs:/mosquitto/log
+      - ./mqtt_servers/mqtt_01/certs:/mosquitto/certs:ro
+    restart: unless-stopped
+
+  # ------------------- POSTGRES -------------------
+  db:
+    image: timescale/timescaledb:2.16.1-pg16
+    container_name: iot_db
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./db_servers/postgres_primary/init:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/postgresql/data
+      - ./db_servers/postgres_primary/logs:/var/log/postgresql
+    ports:
+      - "5432:5432"  # restrict externally
+    restart: unless-stopped
+
+  # ------------------- REDIS (optional but recommended) -------------------
+  redis:
+    image: redis:7-alpine
+    container_name: iot_redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    restart: unless-stopped
+
+  # ------------------- AI ENGINE (Python FastAPI) -------------------
+  ai_engine:
+    build:
+      context: ./ai_engine
+      dockerfile: Dockerfile
+    container_name: iot_ai_engine
+    environment:
+      - LOG_LEVEL=info
+    ports:
+      - "8000:8000"   # internal only, nginx reverse proxy if needed
+    restart: unless-stopped
+
+  # ------------------- MAIL (DEV SMTP, OPTIONAL) -------------------
+  mail:
+    image: bytemark/smtp
+    container_name: iot_mail
+    restart: unless-stopped
+
+  # ------------------- PROMETHEUS & GRAFANA (optional) -------------------
+  prometheus:
+    image: prom/prometheus
+    container_name: iot_prometheus
+    volumes:
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana-oss:11.1.0
+    container_name: iot_grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infra/monitoring/grafana_dashboards:/var/lib/grafana/dashboards
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  grafana_data:
+
+    Why this compose?
+
+        Keeps services isolated but connected
+
+        Minimal external ports (Nginx 80/443, Mosquitto 1883 for local LAN)
+
+        TimescaleDB gives time-series performance with PostgreSQL compatibility
+
+        Optional monitoring (Prometheus/Grafana)

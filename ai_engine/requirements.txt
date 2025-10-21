@@ -1,0 +1,11 @@
+fastapi==0.112.1
+uvicorn==0.30.6
+pydantic==2.9.2
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.5.2
+joblib==1.4.2
+statsmodels==0.14.2
+SQLAlchemy==2.0.34
+psycopg2-binary==2.9.9
+python-dateutil==2.9.0.post0

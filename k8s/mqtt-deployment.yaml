@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mqtt
+  labels: { app: mqtt }
+spec:
+  replicas: 2  # scale horizontally
+  selector:
+    matchLabels: { app: mqtt }
+  template:
+    metadata:
+      labels: { app: mqtt }
+    spec:
+      containers:
+        - name: mosquitto
+          image: eclipse-mosquitto:2.0
+          ports:
+            - containerPort: 1883
+            # - containerPort: 8883  # enable if TLS
+          volumeMounts:
+            - name: mosq-conf
+              mountPath: /mosquitto/config
+              readOnly: true
+            - name: mosq-certs
+              mountPath: /mosquitto/certs
+              readOnly: true
+          readinessProbe:
+            tcpSocket: { port: 1883 }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+      volumes:
+        - name: mosq-conf
+          configMap:
+            name: mosquitto-config
+        - name: mosq-certs
+          secret:
+            secretName: mosquitto-certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mqtt
+spec:
+  selector: { app: mqtt }
+  ports:
+    - port: 1883
+      targetPort: 1883
+      name: mqtt
+  type: ClusterIP
+
+    Create ConfigMap and Secret for mosquitto:
+
+    mosquitto-config (your mosquitto.conf & acl.conf)
+
+    mosquitto-certs (TLS certs if used)

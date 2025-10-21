@@ -1,0 +1,11 @@
+{
+  "filename": "esp32_v1.1.bin",
+  "version": "1.1",
+  "released": "2025-08-01",
+  "changelog": [
+    "Fixed MQTT reconnection issue",
+    "Added env monitor widget support"
+  ],
+  "sha256": "REPLACE_WITH_ACTUAL_SHA256",
+  "signed": false
+}
