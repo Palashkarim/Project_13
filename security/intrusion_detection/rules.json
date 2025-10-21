@@ -1,0 +1,8 @@
+[
+  {
+    "type": "failed_logins",
+    "target": "0.0.0.0",
+    "threshold": 10,
+    "window_minutes": 10
+  }
+]

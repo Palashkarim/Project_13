@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: timescaledb
+spec:
+  serviceName: "timescaledb"
+  replicas: 1
+  selector:
+    matchLabels: { db: timescaledb }
+  template:
+    metadata:
+      labels: { db: timescaledb }
+    spec:
+      containers:
+        - name: postgres
+          image: timescale/timescaledb:2.16.1-pg16
+          env:
+            - name: POSTGRES_DB
+              valueFrom: { secretKeyRef: { name: db-secrets, key: DB_NAME } }
+            - name: POSTGRES_USER
+              valueFrom: { secretKeyRef: { name: db-secrets, key: DB_USER } }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: db-secrets, key: DB_PASSWORD } }
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: dbdata
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: dbdata
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 200Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: timescaledb
+spec:
+  selector: { db: timescaledb }
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: pg
+  type: ClusterIP

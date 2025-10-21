@@ -1,0 +1,9 @@
+{
+  "version": "v1.1",
+  "device_type": "esp32",
+  "url": "http://yourserver.com/ota_repo/firmwares/esp32_v1.1.bin",
+  "size": 3145728,
+  "checksum": "a3d7d2b7a9dfe3f229a13fd5fd56754d5a34fcd835fdd437717edb0d0c4d1a1b",
+  "release_notes": "Bug fixes and performance improvements",
+  "timestamp": "2025-10-01T12:00:00Z"
+}
