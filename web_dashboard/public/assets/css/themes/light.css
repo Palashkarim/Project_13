@@ -1,0 +1,23 @@
+/* Light theme overrides */
+:root{
+  --bg:#f6f7fb;
+  --bg-2:#ffffff;
+  --fg:#0e1117;
+  --muted:#5b6472;
+  --card:#ffffff;
+  --border:#e7e9ef;
+  --shadow:0 8px 24px rgba(20,20,30,.06);
+}
+
+web_dashboard/public/assets/css/themes/dark.css
+
+/* Dark theme overrides */
+:root{
+  --bg:#0b0c10;
+  --bg-2:#121319;
+  --fg:#e6eaf2;
+  --muted:#98a1b2;
+  --card:#171821;
+  --border:#242633;
+  --shadow:0 10px 28px rgba(0,0,0,.35);
+}

@@ -1,0 +1,10 @@
+/* Generic widget tiles */
+.widget{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px}
+.widget .title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.widget .title h4{margin:0}
+.widget .meta{color:var(--muted);font-size:12px}
+.widget .body{min-height:74px;display:flex;align-items:center;justify-content:center}
+
+/* Specifics */
+.widget-switch .body button{min-width:120px}
+.widget-gauge .value{font-size:28px;font-weight:800}
