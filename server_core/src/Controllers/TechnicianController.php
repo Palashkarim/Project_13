@@ -168,3 +168,131 @@ class TechnicianController extends BaseController {
     readfile($file);
   }
 }
+
+Example Arduino template (drop in server_core/src/Codegen/templates/esp32/main.ino.tpl)
+
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include "secrets.h"
+#include "mqtt_topics.h"
+#include "pins.h"
+#include "ota.h"
+
+// Basic heartbeat + LWT
+WiFiClient espClient;
+PubSubClient client(espClient);
+unsigned long lastPublish = 0;
+
+void mqttReconnect() {
+  while (!client.connected()) {
+    if (client.connect("{{DEVICE_ID}}", MQTT_USER, MQTT_PASS, TOPIC_LWT, {{QOS}}, true, "offline")) {
+      client.publish(TOPIC_STATE, "online", true);
+      client.subscribe(TOPIC_CMD, {{QOS}});
+    } else {
+      delay(2000);
+    }
+  }
+}
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  // Simple command: payload[0] == '1' => turn ON relay pin, else OFF
+  if (strcmp(topic, TOPIC_CMD) == 0) {
+    if (length > 0 && payload[0] == '1') digitalWrite(RELAY_PIN, HIGH);
+    else digitalWrite(RELAY_PIN, LOW);
+  }
+}
+
+void setup() {
+  pinMode(RELAY_PIN, OUTPUT);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) delay(200);
+
+  client.setServer(MQTT_HOST, MQTT_PORT);
+  client.setCallback(callback);
+  setupOTA("{{DEVICE_ID}}", "{{OTA_KEY}}");
+}
+
+void loop() {
+  if (!client.connected()) mqttReconnect();
+  client.loop();
+  handleOTA();
+
+  unsigned long now = millis();
+  if (now - lastPublish > 5000) {
+    lastPublish = now;
+    client.publish(TOPIC_TELE, "heartbeat", false);
+  }
+}
+
+secrets.h.tpl
+
+#pragma once
+#define WIFI_SSID "{{WIFI_SSID}}"
+#define WIFI_PASS "{{WIFI_PASS}}"
+#define MQTT_HOST "{{MQTT_HOST}}"
+#define MQTT_PORT {{MQTT_PORT}}
+#define MQTT_USER "{{MQTT_USER}}"
+#define MQTT_PASS "{{MQTT_PASS}}"
+
+mqtt_topics.h.tpl
+
+#pragma once
+#define TOPIC_CMD   "{{TOPIC_CMD}}"
+#define TOPIC_TELE  "{{TOPIC_TELE}}"
+#define TOPIC_STATE "{{TOPIC_STATE}}"
+#define TOPIC_LWT   "{{TOPIC_LWT}}"
+#define QOS {{QOS}}
+
+pins.h.tpl
+
+#pragma once
+#define RELAY_PIN 5
+#define SENSOR_PIN 34
+
+ota.h.tpl
+
+#pragma once
+#include <ArduinoOTA.h>
+void setupOTA(const char* id, const char* key) {
+  ArduinoOTA.setHostname(id);
+  // For real security, use encrypted OTA channel or signed firmware
+  ArduinoOTA.begin();
+}
+void handleOTA() { ArduinoOTA.handle(); }
+
+6) The remaining controllers (skeletons with clear TODOs)
+
+(They compile; you’ll just add your PDO queries and service calls.)
+src/Controllers/UserController.php
+
+<?php
+namespace Iot\Controllers;
+
+class UserController extends BaseController {
+  public function index(): array {
+    // TODO: pagination, filters
+    $rows = $this->pdo()->query('SELECT id, email, role, display_name FROM users ORDER BY id DESC LIMIT 100')->fetchAll();
+    return ['users' => $rows];
+  }
+  public function create(): array {
+    $b = $this->req->body;
+    // TODO: validate, hash password (password_hash($pwd, PASSWORD_ARGON2ID))
+    // TODO: insert into users
+    return ['status' => 'created'];
+  }
+  public function show(string $id): array {
+    $stmt = $this->pdo()->prepare('SELECT id, email, role, display_name FROM users WHERE id = :id');
+    $stmt->execute([':id' => (int)$id]);
+    $u = $stmt->fetch();
+    if (!$u) { http_response_code(404); return ['error'=>'not found']; }
+    return ['user'=>$u];
+  }
+  public function update(string $id): array {
+    // TODO: update allowed fields; no username/email change for end-users per your policy
+    return ['status'=>'updated'];
+  }
+  public function delete(string $id): array {
+    // TODO: cascade deletes carefully (devices, bindings, etc.)
+    return ['status'=>'deleted'];
+  }
+}

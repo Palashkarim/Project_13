@@ -38,4 +38,8 @@ class MqttService {
     @exec($line, $out, $code);
     return $code === 0;
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> Akib

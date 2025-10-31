@@ -1,0 +1,50 @@
+{
+  "brokers": [
+    {
+      "id": "mqtt_01",
+      "host": "127.0.0.1",
+      "tcp_port": 1883,
+      "ws_port": 9001,
+      "tls_port": 8883,
+      "paths": {
+        "base": "../mqtt_01",
+        "conf": "../mqtt_01/mosquitto.conf",
+        "passwd": "../mqtt_01/passwd",
+        "acl": "../mqtt_01/acl.conf",
+        "logs_dir": "../mqtt_01/logs",
+        "certs_dir": "../mqtt_01/certs"
+      }
+    },
+    {
+      "id": "mqtt_02",
+      "host": "127.0.0.1",
+      "tcp_port": 1884,
+      "ws_port": 9002,
+      "tls_port": 8884,
+      "paths": {
+        "base": "../mqtt_02",
+        "conf": "../mqtt_02/mosquitto.conf",
+        "passwd": "../mqtt_02/passwd",
+        "acl": "../mqtt_02/acl.conf",
+        "logs_dir": "../mqtt_02/logs",
+        "certs_dir": "../mqtt_02/certs"
+      }
+    }
+  ],
+
+  "auth": {
+    "admin_user": "admin:10",
+    "admin_pass_cmd": "echo 'PUT_REAL_PASSWORD_HERE'",
+
+    "tech_user": "tech:100",
+    "tech_pass_cmd": "echo 'PUT_REAL_PASSWORD_HERE'",
+
+    "super_user": "super:1",
+    "super_pass_cmd": "echo 'PUT_REAL_PASSWORD_HERE'"
+  },
+
+  "api": {
+    "acl_dump_url": "http://127.0.0.1/api/security/acl_dump",
+    "bearer_token_cmd": "cat /etc/iot_platform/api_token 2>/dev/null || echo ''"
+  }
+}

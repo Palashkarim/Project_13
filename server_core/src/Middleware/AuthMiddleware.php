@@ -25,4 +25,3 @@ class AuthMiddleware {
     return $claims ?: null;
   }
 }
-

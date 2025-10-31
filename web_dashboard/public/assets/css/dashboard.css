@@ -1,0 +1,29 @@
+/* App chrome */
+.app-shell{display:grid;grid-template-rows:56px 1fr;min-height:100vh;background:var(--bg);color:var(--fg)}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--border);background:var(--bg-2)}
+.topbar .brand{font-weight:700;letter-spacing:.3px}
+.topbar .right{display:flex;gap:8px;align-items:center}
+.container{display:grid;grid-template-columns:240px 1fr;gap:0}
+.sidebar{border-right:1px solid var(--border);padding:12px;background:var(--bg-2)}
+.sidebar .section{margin-bottom:16px}
+.sidebar .section h4{margin:8px 0;color:var(--muted);font-size:12px;text-transform:uppercase}
+.sidebar .link{display:block;padding:8px 10px;border-radius:10px;color:var(--fg)}
+.sidebar .link.active, .sidebar .link:hover{background:var(--card)}
+.content{padding:16px}
+.boards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px}
+.card h3{margin:0 0 8px 0}
+.row{display:flex;gap:8px;align-items:center}
+.badge{padding:2px 8px;border-radius:999px;background:var(--bg-2);border:1px solid var(--border);color:var(--muted);font-size:12px}
+.btn{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg-2);color:var(--fg)}
+.btn.primary{background:var(--brand);border-color:transparent;color:white}
+.btn.ghost{background:transparent}
+.toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px}
+
+/* Login */
+.login-wrap{display:grid;place-items:center;min-height:100vh;background:linear-gradient(180deg,#0b0c10,#0e1117)}
+.login-card{width:min(420px,92vw);padding:20px;border-radius:16px;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow)}
+.login-card h1{margin:0 0 6px 0}
+.login-card p{margin:0 0 14px 0;color:var(--muted)}
+.input{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg-2);color:var(--fg)}
+.input + .input{margin-top:10px}

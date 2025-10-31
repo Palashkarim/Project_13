@@ -40,3 +40,4 @@ class SubscriptionService {
     return ['plan_key'=>$s['plan_key'], 'expires_at'=>$s['expires_at'], 'status'=>$expired ? 'expired' : $s['status']];
   }
 }
+

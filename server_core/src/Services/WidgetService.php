@@ -46,3 +46,4 @@ class WidgetService {
     return $this->allow->getAllowed($userId);
   }
 }
+
